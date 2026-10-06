@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS t_secre_hand_row (
   quali_num decimal(12,2) DEFAULT NULL COMMENT '本行核收合格件数',
   hand_kind varchar(32) DEFAULT NULL COMMENT '交回渠道（本级送交／上级调回两条来路）',
   status int DEFAULT NULL COMMENT '行落地情形 0未勾 1已收下 2已退回',
+  arch_flag int DEFAULT '0' COMMENT '旧档标记 0现行 1已沉旧档（去向空悬连着满两个年度的行沉下去，现行名单不再列，存量照旧翻得着）',
   del_flag int DEFAULT '0' COMMENT '删除标记 0正常 1删除',
   create_by varchar(64) DEFAULT NULL COMMENT '创建者',
   create_time datetime DEFAULT NULL COMMENT '创建时间',

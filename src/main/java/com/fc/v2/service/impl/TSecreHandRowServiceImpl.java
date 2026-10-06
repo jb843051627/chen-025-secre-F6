@@ -1,68 +1,87 @@
 package com.fc.v2.service.impl;
 
+import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.fc.v2.common.secre.SecreHandGate;
+import com.fc.v2.common.secre.SecreHandIn;
+import com.fc.v2.common.secre.SecreHandReceipt;
+import com.fc.v2.common.secre.SecreHandVerdict;
 import com.fc.v2.mapper.auto.TSecreHandRowMapper;
 import com.fc.v2.model.auto.TSecreHandRow;
 import com.fc.v2.service.ITSecreHandRowService;
 
 /**
- * 清退移交行 Service业务层处理（batch-process 形状：整批提交）
+ * 清退移交行 Service业务层处理（batch-process 形状：整册进门，无单条增删改）
+ *
+ * <p>判路全在 {@link SecreHandGate} 这一处：整批进门、单行定去向、重递照面、册首
+ * 三数、撤批、旧档沉取，一律到那里去对答案；这里只跑腿递话，不另起判路，行没有
+ * 绕过它自落册的路，也没有自改去向的路。</p>
  *
  * @author fuce
- * @date 2026-09-14
+ * @date 2026-10-06
  */
 @Service
 public class TSecreHandRowServiceImpl implements ITSecreHandRowService {
 
-    private static final int MAX_ROWS = 500;
-    private static final int STATUS_OK = 1;
-    private static final int STATUS_FAIL = 2;
-
     @javax.annotation.Resource
     private TSecreHandRowMapper secreHandRowMapper;
 
+    @Autowired
+    private SecreHandGate secreHandGate;
+
     @Override
     public TSecreHandRow selectTSecreHandRowById(Long id) {
-        return this.secreHandRowMapper.selectById(id);
+        return this.secreHandRowMapper.selectOne(new QueryWrapper<TSecreHandRow>()
+                .eq("id", id)
+                .eq("del_flag", 0));
     }
 
     @Override
-    public int submitBatch(String batchNo, List<TSecreHandRow> rows) {
-        String no = rows.get(0).getBatchNo();
-        java.util.List<TSecreHandRow> errors = new java.util.ArrayList<TSecreHandRow>();
-        int seq = 0;
-        for (TSecreHandRow r : rows) {
-            if (r.getItemCode() == null || r.getItemCode().trim().isEmpty()
-                    || r.getQty() == null
-                    || r.getQty().compareTo(java.math.BigDecimal.ZERO) <= 0) {
-                seq++;
-                r.setRowNo(Integer.valueOf(seq));
-                r.setBatchNo(no);
-                r.setStatus(STATUS_FAIL);
-                this.secreHandRowMapper.insert(r);
-                errors.add(r);
-            }
-        }
-        if (!errors.isEmpty()) {
-            return 0;
-        }
-        int ok = 0;
-        for (TSecreHandRow r : rows) {
-            r.setBatchNo(no);
-            r.setStatus(STATUS_OK);
-            this.secreHandRowMapper.insert(r);
-            ok++;
-        }
-        return ok;
+    public SecreHandReceipt enterBatch(String batchNo, List<SecreHandIn> rows) {
+        // 整批怎么进门，只认这一处的答案
+        return secreHandGate.enter(batchNo, rows);
     }
 
     @Override
-    public List<TSecreHandRow> listErrors(String batchNo) {
-        return this.secreHandRowMapper.selectList(new QueryWrapper<TSecreHandRow>()
-                .eq("batch_no", batchNo).eq("status", STATUS_FAIL));
+    public SecreHandReceipt receiptOf(String batchNo) {
+        // 册首三数从哪里轧出，只认这一处的答案
+        return secreHandGate.receiptOf(batchNo);
+    }
+
+    @Override
+    public SecreHandReceipt verify(String batchNo) {
+        return secreHandGate.verify(batchNo);
+    }
+
+    @Override
+    public SecreHandVerdict decideRow(String batchNo, Integer rowNo, int decision, String reason) {
+        // 单行怎么定去向，只认这一处的答案
+        return secreHandGate.decideRow(batchNo, rowNo, decision, reason);
+    }
+
+    @Override
+    public int cancelBatch(String batchNo) {
+        return secreHandGate.cancelBatch(batchNo);
+    }
+
+    @Override
+    public int sinkStale(LocalDate today) {
+        // 旧档那一层的沉取也归这一处判
+        return secreHandGate.sinkStale(today);
+    }
+
+    @Override
+    public List<TSecreHandRow> listCurrent(String batchNo) {
+        return secreHandGate.listCurrent(batchNo);
+    }
+
+    @Override
+    public List<TSecreHandRow> listArchive(String batchNo) {
+        return secreHandGate.listArchive(batchNo);
     }
 }

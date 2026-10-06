@@ -67,6 +67,11 @@ public class TSecreHandRow implements Serializable {
     @ApiModelProperty(value = "行落地情形 0未勾 1已收下 2已退回")
     private Integer status;
 
+    /** 旧档标记 0现行 1已沉旧档 */
+    @TableField("arch_flag")
+    @ApiModelProperty(value = "旧档标记 0现行 1已沉旧档")
+    private Integer archFlag;
+
     /** 删除标记 0正常 1删除 */
     @TableField("del_flag")
     @ApiModelProperty(value = "删除标记 0正常 1删除")
@@ -161,6 +166,14 @@ public class TSecreHandRow implements Serializable {
 
     public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    public Integer getArchFlag() {
+        return archFlag;
+    }
+
+    public void setArchFlag(Integer archFlag) {
+        this.archFlag = archFlag;
     }
 
     public Integer getDelFlag() {
