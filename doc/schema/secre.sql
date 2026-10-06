@@ -47,13 +47,16 @@ CREATE TABLE IF NOT EXISTS t_secre_hand_row (
   quali_num decimal(12,2) DEFAULT NULL COMMENT '本行核收合格件数',
   hand_kind varchar(32) DEFAULT NULL COMMENT '交回渠道（本级送交／上级调回两条来路）',
   status int DEFAULT NULL COMMENT '行落地情形 0未勾 1已收下 2已退回',
+  archive_flag int DEFAULT '0' COMMENT '旧档层 0现行名单 1已满两个年度没着落沉入旧档（这条路只朝旧册开）',
   del_flag int DEFAULT '0' COMMENT '删除标记 0正常 1删除',
   create_by varchar(64) DEFAULT NULL COMMENT '创建者',
   create_time datetime DEFAULT NULL COMMENT '创建时间',
   update_by varchar(64) DEFAULT NULL COMMENT '更新者',
   update_time datetime DEFAULT NULL COMMENT '更新时间',
-  remark varchar(500) DEFAULT NULL COMMENT '备注',
-  PRIMARY KEY (id)
+  remark varchar(500) DEFAULT NULL COMMENT '备注（退行的缘故写在这一行上）',
+  PRIMARY KEY (id),
+  KEY idx_hand_batch (batch_no, del_flag),
+  KEY idx_hand_pending (status, archive_flag, del_flag)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='清退移交行';
 
 CREATE TABLE IF NOT EXISTS t_secre_level_bill (

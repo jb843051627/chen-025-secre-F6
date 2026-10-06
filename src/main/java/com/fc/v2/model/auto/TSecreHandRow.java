@@ -67,6 +67,21 @@ public class TSecreHandRow implements Serializable {
     @ApiModelProperty(value = "行落地情形 0未勾 1已收下 2已退回")
     private Integer status;
 
+    /** 旧档层标记 0现行名单 1已满两个年度没着落沉入旧档 */
+    @TableField("archive_flag")
+    @ApiModelProperty(value = "旧档层标记 0现行名单 1已沉旧档")
+    private Integer archiveFlag;
+
+    /** 报文里随来的载体题名（只作对照，不落库；对不上以册面为准） */
+    @TableField(exist = false)
+    @ApiModelProperty(value = "报文里随来的载体题名（只作对照）")
+    private String reportedContent;
+
+    /** 报文里随来的名录代号（只作对照，不落库；对不上以册面为准） */
+    @TableField(exist = false)
+    @ApiModelProperty(value = "报文里随来的名录代号（只作对照）")
+    private String reportedBookNo;
+
     /** 删除标记 0正常 1删除 */
     @TableField("del_flag")
     @ApiModelProperty(value = "删除标记 0正常 1删除")
@@ -161,6 +176,30 @@ public class TSecreHandRow implements Serializable {
 
     public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    public Integer getArchiveFlag() {
+        return archiveFlag;
+    }
+
+    public void setArchiveFlag(Integer archiveFlag) {
+        this.archiveFlag = archiveFlag;
+    }
+
+    public String getReportedContent() {
+        return reportedContent;
+    }
+
+    public void setReportedContent(String reportedContent) {
+        this.reportedContent = reportedContent;
+    }
+
+    public String getReportedBookNo() {
+        return reportedBookNo;
+    }
+
+    public void setReportedBookNo(String reportedBookNo) {
+        this.reportedBookNo = reportedBookNo;
     }
 
     public Integer getDelFlag() {
